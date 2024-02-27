@@ -7,8 +7,18 @@ from sklearn.feature_extraction.text import CountVectorizer, TfidfVectorizer
 import lyricsgenius
 import os.path
 import pymorphy3
-import tkinter
 import stopwords
+
+import matplotlib as plt
+#from wordcloud import WordCloud
+from vaderSentiment.vaderSentiment import SentimentIntensityAnalyzer
+from googletrans import Translator
+
+def translate_text(text):
+    translator = Translator()
+    translation = translator.translate(text, dest='en')
+    return translation.text
+
 
 pd.set_option('display.max_rows', None)
 pd.set_option('display.max_columns', None)
@@ -16,13 +26,14 @@ morph=pymorphy3.MorphAnalyzer()
 stop=stopwords.get_stopwords('ru')
 stopen=stopwords.get_stopwords('en')
 
+
 def down(author):
     genius = lyricsgenius.Genius("Yj6AKvZjM2BDv-OMemcZ_cSCz2fubrAAB3PPV743bUpo1nzfAknSO0lKj-P_Jmrt", skip_non_songs=True, excluded_terms=["(Remix)", "(Live)"])
     artist = genius.search_artist(author)
     artist.save_lyrics()
 
 
-def inf(autohr):
+def inf(autohr): #Слздаём DataFrame файл, который содежрит информацию о песнях.
     with open(f"Lyrics_{autohr}.json") as f:
         datao = json.load(f)
         listi = []
@@ -52,21 +63,19 @@ def inf(autohr):
     df = pandas.DataFrame(listi)
     df.dropna(inplace=True)
     df.head()
-    release = df['release'].str.extract(r'(\d{4})')
-    df.release = release
-    songs_b_y = df.groupby(df.album).size().reset_index(name='counts')
-    songs_b_y.sort_values(by="counts", ascending=False)
-    songs_b_y.drop(songs_b_y[songs_b_y.counts < 1].index, inplace=True)
-    songs_b_y.sort_values(by=["counts"], inplace=True, ascending=False)
+    songs_b = df.groupby(df.album).size().reset_index(name='counts') #Сортируем песни по албомам исполнителя
+    songs_b.sort_values(by="counts", ascending=False)
+    songs_b.drop(songs_b[songs_b.counts < 1].index, inplace=True)
+    songs_b.sort_values(by=["counts"], inplace=True, ascending=False)
     return df
 
 
 def count_words(data, wordik):
     list_of_w = []
-    w = wordik.lower()
+    w = wordik.lower()#Уменьшаем регистр каждого слова для облегчения подсчета
     for index, row in data.iterrows():
         cnt = 0
-        lyrics = row['lyrics'].lower().split()
+        lyrics = row['lyrics'].lower().split()#Разделяем каждое слово для его подсчёта
         for word in lyrics:
             if word == w:
                 cnt += 1
@@ -88,7 +97,6 @@ def max_words_album(album, data):
     album = data.loc[data.album == album]
     vectorizer = CountVectorizer(stop_words=stop)
     data_set = vectorizer.fit_transform(album.lyrics)
-    # Album_df = pd.DataFrame(X.toarray(), index=album.title, columns=vectorizer.get_feature_names_out())
     sum_cnt = data_set.sum(axis=0)
     vocab = vectorizer.vocabulary_
     list_of_tuple = vocab.items()
@@ -117,8 +125,20 @@ def coeff(df):
     master_list1 = [(word, sum_cnt1[0, index])for word, index in list_of_tuple1]
     master_list1.sort(key=lambda x: x[1], reverse=True)
     return master_list1[:20]
+def wc(data):
+    vectorizer = CountVectorizer(stop_words=stop)
+    data_set = vectorizer.fit_transform(data.lyrics)
+    sum_cnt = data_set.sum(axis=0)
+    vocab = vectorizer.vocabulary_
+    list_of_tuple = vocab.items()
+    master_list = [(word, sum_cnt[0, index]) for word, index in list_of_tuple]
+    master_list.sort(key=lambda x: x[1], reverse=True)
+    analyzer = SentimentIntensityAnalyzer()
+    for word in range(len(master_list)):
+        vs = analyzer.polarity_scores(translate_text(str(master_list[word][0])))
+        print("{:-<30} {}".format(master_list[word][0], str(vs)))
 
-
+    return 'hoorray'
 def main():
     country = input("Автор западный(з) или отечественный(о)?")
     autohr = input("Введите автора для анализа:")
@@ -137,9 +157,7 @@ def main():
                 for j in range(len(morphling[i+1:])):
                     if word.inflect({morphling[i]}).word == word.inflect({morphling[j]}).word:
                         povtor.append(morphling[i])
-            print(povtor)
             res = [x for x in morphling if not any([x.find(y) >= 0 for y in set(povtor)])]
-            print(res)
             for i in res:
                 q = count_words(data, word.inflect({i}).word)
                 for j in range(len(mass_word)):
@@ -162,6 +180,9 @@ def main():
         elif action == "4":
             data = inf(autohr)
             print(max_words_song(data))
+        elif action == "5":
+            data = inf(autohr)
+            print(wc(data))
     else:
         print("Не знали о таком исполнителе, сейчас узнаем...")
         down(autohr)
