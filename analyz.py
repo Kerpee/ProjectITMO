@@ -114,8 +114,7 @@ def max_words_song(data):
     master_list = [(word, sum_cnt[0, index])for word, index in list_of_tuple]
     master_list.sort(key=lambda x: x[1], reverse=True)
     print(len(data.lyrics))
-    return len(master_list),int(len(master_list)/len(data.lyrics)),master_list
-
+    return master_list
 
 def coeff(df):
     tfid_vect = TfidfVectorizer(stop_words=stop, max_df=.2, min_df=4)
@@ -126,17 +125,13 @@ def coeff(df):
     master_list1.sort(key=lambda x: x[1], reverse=True)
     return master_list1[:20]
 def wc(data):
-    vectorizer = CountVectorizer(stop_words=stop)
-    data_set = vectorizer.fit_transform(data.lyrics)
-    sum_cnt = data_set.sum(axis=0)
-    vocab = vectorizer.vocabulary_
-    list_of_tuple = vocab.items()
-    master_list = [(word, sum_cnt[0, index]) for word, index in list_of_tuple]
-    master_list.sort(key=lambda x: x[1], reverse=True)
+    data=data
+    list_of_word=max_words_song(data)
+    print(list_of_word)
     analyzer = SentimentIntensityAnalyzer()
-    for word in range(len(master_list)):
-        vs = analyzer.polarity_scores(translate_text(str(master_list[word][0])))
-        print("{:-<30} {}".format(master_list[word][0], str(vs)))
+    for word in range(len(list_of_word)):
+        vs = analyzer.polarity_scores(translate_text(str(list_of_word[word][0])))
+        print("{:-<30} {}".format(list_of_word[word][0], str(vs)))
 
     return 'hoorray'
 def main():
