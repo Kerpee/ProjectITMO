@@ -35,7 +35,7 @@ def down(author):  # Скачивание автора, которого нет 
 
 def get_author(author, list_of_authors):
     author_cool, score = process.extractOne(author, list_of_authors, scorer=fuzz.token_sort_ratio)
-    return author_cool if score > 30 else None
+    return author_cool if score > 42 else author
 
 
 def inf(autohr):  # Создаём DataFrame файл, который содежрит информацию о песнях.
