@@ -17,7 +17,7 @@ class Analyzer:
         authors_list = [f[7:-5] for f in author_files]
         self.author = get_author(self.author, authors_list)
         if not os.path.exists(f'Lyrics_{self.author}.json'):
-            messagebox.showinfo('Не знали о таком исполнителе; Сейчас узнаем')
+            messagebox.showinfo('ОЙ','Не знали о таком исполнителе; Сейчас узнаем')
             down(self.author)
         self.data = inf(self.author)
 
@@ -107,18 +107,17 @@ class LyricsAnalyzerApp(tk.Tk):  # Класс, инициализирующая 
                                       'Показать визуализацию слов')
         self.action_menu.grid(column=2, row=3, columnspan=2, sticky=(tk.W, tk.E))
 
-        ttk.Label(frame, text="Введите слово для подсчета (если выбрано действие 1):").grid(column=1, row=4,
-                                                                                            sticky=tk.W)
+        ttk.Label(frame, text="Введите слово для подсчета:").grid(column=1, row=4,sticky=tk.W)
         self.word_entry = ttk.Entry(frame, width=20, textvariable=self.word_var)
         self.word_entry.grid(column=2, row=4, columnspan=2, sticky=(tk.W, tk.E))
 
-        ttk.Label(frame, text="Введите название альбома (если выбрано действие 2):").grid(column=1, row=5, sticky=tk.W)
+        ttk.Label(frame, text="Введите название альбома:").grid(column=1, row=5, sticky=tk.W)
         self.album_entry = ttk.Entry(frame, width=20, textvariable=self.album_var)
         self.album_entry.grid(column=2, row=5, columnspan=2, sticky=(tk.W, tk.E))
 
         ttk.Button(frame, text="Начать анализ", command=self.start_analyzis).grid(column=2, row=6, columnspan=2)
 
-    def start_analyzis(self): # Функция, выводящая результаты на экран пользователя
+    def start_analyzis(self):  # Функция, выводящая результаты на экран пользователя
         country = self.country_var.get()
         author = self.author_var.get()
         action = self.action_var.get()
