@@ -31,7 +31,7 @@ def translate_text(text):  # Функция, необходимая для пе�
 
 def down(author):  # Скачивание автора, которого нет в базе
     artist = genius.search_artist(author)
-    artist.save_lyrics(extension='json', overwrite=True)
+    artist.save_lyrics(extension='json', overwrite=True,filename=f"Lyrics_{author}")
     direct = os.path.join(os.getcwd(), 'lyrics')
     filename = f"Lyrics_{author}.json"
     if os.path.exists(os.path.join(direct, filename)):
