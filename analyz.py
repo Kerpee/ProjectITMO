@@ -13,7 +13,7 @@ from fuzzywuzzy import process, fuzz
 from dotenv import load_dotenv
 import shutil
 
-load_dotenv('C:/Users/Пк/PycharmProjects/Geniua/api_token.env')
+load_dotenv(os.path.join(os.getcwd(),'api_token.env'))
 api_token = os.getenv('api_token')
 genius = lyricsgenius.Genius(api_token,
                              skip_non_songs=True,
