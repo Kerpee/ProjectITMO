@@ -1,0 +1,10 @@
+pip install pandas
+pip install sckit-learn
+pip install lyricsgenius
+pip install pymorphy3
+pip install nltk
+pip install wordcloud 
+pip install vaderSentiment
+pip install googletrans 
+pip install matplotlib.pyplot
+pip install fuzzywuzzy
