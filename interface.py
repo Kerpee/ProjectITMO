@@ -8,12 +8,22 @@ from analyz import *
 
 
 class Analyzer:
+    """
+    Начальный класс, получающий начальную информацию об операции
+    """
     def __init__(self, author):
+        """
+        Иницииализирующая функция
+        @param author:Автор, которого необходимо проанализировать.
+        """
         self.author = author
         self.data = None
         self.down_data()
 
     def down_data(self):  # Функция, скачивающая текста автора, если таких нет, иначе собирает информацию
+        """
+                Функция, проверяющая необходимость скачивания текстов автора
+                """
         author_files = [f for f in os.listdir('lyrics') if f.startswith('Lyrics_') and f.endswith('.json')]
         authors_list = [f[7:-5] for f in author_files]
         self.author = get_author(self.author, authors_list)
@@ -27,7 +37,15 @@ class Analyzer:
 
 
 class LyricAnalyzer(Analyzer):
+    """
+      Класс необходиый для вызова функций из analyz.py
+    """
     def count_russian_word(self, word, country):  # Специальная функция для подсчёта слов, учитывая падежи
+        """
+        Функция необоходима для подсчёта слов русского языка, учитывая падежи
+        @param word: Слов, которое необходимо считать
+        @param country: Страна, откуда исполнитель, чтобы учитывать необходимо ли проходиться по падежам
+        """
         if country == "о":
             word_morph = morph.parse(word)[0]
             morphling = ["nomn", 'gent', 'ablt', 'accs', 'loct']
@@ -64,6 +82,9 @@ class LyricAnalyzer(Analyzer):
 
 
 def update_all():
+    """
+    Функция необоходима для обновления всех файлов с исполнителями
+    """
     author_files = [f for f in os.listdir('lyrics') if f.startswith('Lyrics_') and f.endswith('.json')]
     authors_list = [f[7:-5] for f in author_files]
     for author in authors_list:
@@ -72,6 +93,9 @@ def update_all():
 
 
 class LyricsAnalyzerApp(tk.Tk):  # Класс, инициализирующая интерфейс программы
+    """
+          Класс необходиый для создания оконного приложения
+    """
     def __init__(self):
         super().__init__()
         self.album_entry = None
@@ -89,6 +113,9 @@ class LyricsAnalyzerApp(tk.Tk):  # Класс, инициализирующая 
         self.create_buttons()
 
     def create_buttons(self):  # Функция для создания интерактивных элементов
+        """
+           Функция необоходима для создания элементов интерфейса приложения
+           """
         frame = ttk.Frame(self, padding="10")
         frame.grid(row=0, column=0, sticky=(tk.W+tk.E+tk.N+tk.S))
 
@@ -132,6 +159,9 @@ class LyricsAnalyzerApp(tk.Tk):  # Класс, инициализирующая 
                                                                                                      columnspan=3)
 
     def start_analyzis(self):  # Функция, выводящая результаты на экран пользователя
+        """
+        Функция необоходима для вывода результатов и отслеживания ввода пользовтеля
+        """
         country = self.country_var.get()
         author = self.author_var.get()
         action = self.action_var.get()
@@ -172,6 +202,9 @@ class LyricsAnalyzerApp(tk.Tk):  # Класс, инициализирующая 
             analyzer.visualize_words()
 
     def update_one(self):
+        """
+        Функция необоходима для обновления файла определнного исполнителя
+        """
         author = self.author_var.get()
         if author:
             down(author)
@@ -181,6 +214,9 @@ class LyricsAnalyzerApp(tk.Tk):  # Класс, инициализирующая 
 
 
 def main():
+    """
+    Функция запускающая приложение
+    """
     app = LyricsAnalyzerApp()
     app.mainloop()
 
