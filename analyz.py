@@ -74,7 +74,7 @@ def inf(autohr):  # Создаём DataFrame файл, который содеж
             except KeyError:
                 acc_dict['lyrics'] = None
             listi.append(acc_dict)
-    df = pandas.DataFrame(listi)
+    df = pd.DataFrame(listi)
     df.dropna(inplace=True)
     df.head()
     songs_b = df.groupby(df.album).size().reset_index(name='counts')  # Сортируем песни по албомам исполнителя
