@@ -5,7 +5,7 @@
 # Установка
 1.Все зависимости указаны в requirments.txt
 ```bash
-    pip install -r requirements.txt
+    pip install -r requirments.txt
 ```
 2. По примеру из файла .env_example создать api_token.env ([Пример](https://github.com/Kerpee/ProjectITMO/blob/main/api_token.env)) и добавьте ваш ключ из API Genius
 3. Запустите проект
