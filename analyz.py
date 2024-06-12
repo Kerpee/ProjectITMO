@@ -5,7 +5,7 @@ import pandas as pd
 from sklearn.feature_extraction.text import CountVectorizer, TfidfVectorizer
 import lyricsgenius
 import pymorphy3
-import stopwords
+from nltk.corpus import stopwords
 from wordcloud import WordCloud
 from vaderSentiment.vaderSentiment import SentimentIntensityAnalyzer
 from googletrans import Translator
@@ -22,7 +22,6 @@ genius = lyricsgenius.Genius(api_token,
 pd.set_option('display.max_rows', None)
 pd.set_option('display.max_columns', None)
 morph = pymorphy3.MorphAnalyzer()
-stop = stopwords.get_stopwords('ru')
 
 
 def translate_text(text):  # Функция, необходимая для перевода слов для оценки эмоциональной окраски
@@ -69,7 +68,7 @@ def inf(autohr):  # Создаём DataFrame файл, который содеж
                 acc_dict['release'] = None
             try:
                 acc_dict['album'] = row['album']['name']
-            except KeyError:
+            except (KeyError, TypeError):
                 acc_dict['album'] = None
             try:
                 acc_dict['lyrics'] = row['lyrics']
@@ -113,7 +112,8 @@ def visual(data, list_of_word, wordik):  # Визуализация подсчё
 
 def max_words_album(album, data):  # Функция для подсчёта слов в альбоме
     album = data.loc[data.album == album]
-    vectorizer = CountVectorizer(stop_words=stop)  # Присуждаем каждому слову номер для облегчения подсчёта
+    vectorizer = CountVectorizer(
+        stop_words=stopwords.words('russian'))  # Присуждаем каждому слову номер для облегчения подсчёта
     data_set = vectorizer.fit_transform(album.lyrics)
     sum_cnt = data_set.sum(axis=0)
     vocab = vectorizer.vocabulary_
@@ -124,7 +124,7 @@ def max_words_album(album, data):  # Функция для подсчёта сл
 
 
 def max_words_song(data):  # Функция для подсчёта всех слов
-    vectorizer = CountVectorizer(stop_words=stop)
+    vectorizer = CountVectorizer(stop_words=stopwords.words('russian'))
     data_set = vectorizer.fit_transform(data.lyrics)
     sum_cnt = data_set.sum(axis=0)
     vocab = vectorizer.vocabulary_
@@ -136,7 +136,8 @@ def max_words_song(data):  # Функция для подсчёта всех с�
 
 
 def coeff(df):  # Высчитываем коэффиценты слов, то есть то насколько часто автор использует это слово во всех песнях
-    tfid_vect = TfidfVectorizer(stop_words=stop, max_df=.4, min_df=5)  # Создаём матрицу,оценивая важность слов
+    tfid_vect = TfidfVectorizer(stop_words=stopwords.words('russian'), max_df=.4,
+                                min_df=5)  # Создаём матрицу,оценивая важность слов
     data_set = tfid_vect.fit_transform(df.lyrics)
     sum_cnt1 = data_set.sum(axis=0)
     list_of_tuple1 = tfid_vect.vocabulary_.items()
@@ -171,8 +172,9 @@ def wc(data):  # Оцениваем эмоциональную окраску т
 
 def cloud(data):  # Создаём кластеры слов автора
     data = ' '.join(data['lyrics'])
-    wordclouds = WordCloud(width=800, height=800, background_color='white', stopwords=stop).generate(data)
-    plt.figure(figsize=(10, 5))
-    plt.imshow(wordclouds, interpolation='bilinear')
+    wordclouds = WordCloud(width=800, height=800, background_color='white',
+                           stopwords=stopwords.words('russian')).generate(data)
+    plt.figure(figsize=(10, 8))
+    plt.imshow(wordclouds)
     plt.axis('off')
     plt.show()
