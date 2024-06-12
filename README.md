@@ -7,7 +7,7 @@
 ```bash
     pip install -r requirments.txt
 ```
-2. По примеру из файла .env_example создать api_token.env ([Пример](https://github.com/Kerpee/ProjectITMO/blob/main/api_token.env)) и добавьте ваш ключ из API Genius
+2. По примеру из файла изменить api_token.env ([Пример](https://github.com/Kerpee/ProjectITMO/blob/main/api_token.env)) и добавьте ваш ключ из API Genius
 3. Запустите проект
 ```bash
     python main.py
