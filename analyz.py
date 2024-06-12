@@ -1,4 +1,5 @@
 import json
+import os
 import pandas
 import pandas as pd
 from sklearn.feature_extraction.text import CountVectorizer, TfidfVectorizer
@@ -10,7 +11,14 @@ from vaderSentiment.vaderSentiment import SentimentIntensityAnalyzer
 from googletrans import Translator
 import matplotlib.pyplot as plt
 from fuzzywuzzy import process, fuzz
+from dotenv import load_dotenv
+import shutil
 
+load_dotenv('C:/Users/Пк/PycharmProjects/Geniua/api_token.env')
+api_token = os.getenv('api_token')
+genius = lyricsgenius.Genius(api_token,
+                             skip_non_songs=True,
+                             excluded_terms=["(Remix)", "(Live)"])
 pd.set_option('display.max_rows', None)
 pd.set_option('display.max_columns', None)
 morph = pymorphy3.MorphAnalyzer()
@@ -24,11 +32,14 @@ def translate_text(text):  # Функция, необходимая для пе�
 
 
 def down(author):  # Скачивание автора, которого нет в базе
-    genius = lyricsgenius.Genius("Yj6AKvZjM2BDv-OMemcZ_cSCz2fubrAAB3PPV743bUpo1nzfAknSO0lKj-P_Jmrt",
-                                 skip_non_songs=True,
-                                 excluded_terms=["(Remix)", "(Live)"])
     artist = genius.search_artist(author)
-    artist.save_lyrics()
+    artist.save_lyrics(extension='json', overwrite=True)
+    direct = os.path.join(os.getcwd(), 'lyrics')
+    filename = f"Lyrics_{author}.json"
+    if os.path.exists(os.path.join(direct, filename)):
+        os.remove(os.path.join(direct, filename))
+    shutil.move(filename, direct)
+
 
 # Проверка на совпадение автора, что позволяет уменьшить количество ошибок при вводе
 
@@ -39,30 +50,30 @@ def get_author(author, list_of_authors):
 
 
 def inf(autohr):  # Создаём DataFrame файл, который содежрит информацию о песнях.
-    with open(f"Lyrics_{autohr}.json") as f:
-        datao = json.load(f)
+    with open(os.path.join('lyrics', f"Lyrics_{autohr}.json")) as f:
+        dataopen = json.load(f)
         listi = []
-        for row in datao["songs"]:
+        for row in dataopen["songs"]:
             acc_dict = {}
             try:
                 acc_dict['title'] = row['full_title']
-            except:
+            except KeyError:
                 acc_dict['title'] = None
             try:
                 acc_dict['lyrics_state'] = row['lyrics_state']
-            except:
+            except KeyError:
                 acc_dict['lyrics_state'] = None
             try:
                 acc_dict['release'] = row['release_date']
-            except:
+            except KeyError:
                 acc_dict['release'] = None
             try:
                 acc_dict['album'] = row['album']['name']
-            except:
+            except KeyError:
                 acc_dict['album'] = None
             try:
                 acc_dict['lyrics'] = row['lyrics']
-            except:
+            except KeyError:
                 acc_dict['lyrics'] = None
             listi.append(acc_dict)
     df = pandas.DataFrame(listi)
@@ -107,7 +118,7 @@ def max_words_album(album, data):  # Функция для подсчёта сл
     sum_cnt = data_set.sum(axis=0)
     vocab = vectorizer.vocabulary_
     list_of_tuple = vocab.items()
-    master_list = [(word, sum_cnt[0, index])for word, index in list_of_tuple]
+    master_list = [(word, sum_cnt[0, index]) for word, index in list_of_tuple]
     master_list.sort(key=lambda x: x[1], reverse=True)
     return master_list, len(master_list)
 
@@ -118,7 +129,7 @@ def max_words_song(data):  # Функция для подсчёта всех с�
     sum_cnt = data_set.sum(axis=0)
     vocab = vectorizer.vocabulary_
     list_of_tuple = vocab.items()
-    master_list = [(word, sum_cnt[0, index])for word, index in list_of_tuple]
+    master_list = [(word, sum_cnt[0, index]) for word, index in list_of_tuple]
     master_list.sort(key=lambda x: x[1], reverse=True)
     print(len(data.lyrics))
     return master_list
@@ -129,7 +140,7 @@ def coeff(df):  # Высчитываем коэффиценты слов, то �
     data_set = tfid_vect.fit_transform(df.lyrics)
     sum_cnt1 = data_set.sum(axis=0)
     list_of_tuple1 = tfid_vect.vocabulary_.items()
-    master_list1 = [(word, sum_cnt1[0, index])for word, index in list_of_tuple1]
+    master_list1 = [(word, sum_cnt1[0, index]) for word, index in list_of_tuple1]
     master_list1.sort(key=lambda x: x[1], reverse=True)
     format_master_list1 = [(word, f"{value:.2f}") for word, value in master_list1]
     return format_master_list1[:20]
@@ -138,9 +149,24 @@ def coeff(df):  # Высчитываем коэффиценты слов, то �
 def wc(data):  # Оцениваем эмоциональную окраску текстов
     list_of_word = max_words_song(data)
     analyzer = SentimentIntensityAnalyzer()
+    scores = {'pos': 0, 'neg': 0, 'neu': 0, 'comp': 0}
     for word in range(len(list_of_word)):
         vs = analyzer.polarity_scores(translate_text(str(list_of_word[word][0])))
         print("{:-<30} {}".format(list_of_word[word][0], str(vs)))
+        scores['pos'] += vs['pos']
+        scores['neg'] += vs['neg']
+        scores['neu'] += vs['neu']
+        scores['comp'] += vs['compound']
+    len_texts = len(data)
+    avg_scores = {}
+    for i, j in scores.items():
+        avg_scores[i] = j / len_texts
+    if avg_scores['comp'] >= 0.5:
+        return 'Исполнитель более позитивный', avg_scores
+    elif avg_scores['comp'] <= -0.5:
+        return 'Исполнитель более негативный', avg_scores
+    else:
+        return 'Исполнитель более нейтрален', avg_scores
 
 
 def cloud(data):  # Создаём кластеры слов автора
