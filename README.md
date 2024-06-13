@@ -12,3 +12,4 @@
 ```bash
     python main.py
 ``` 
+Документацию можете посмотреть в index.html 
