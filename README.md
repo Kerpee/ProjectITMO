@@ -12,4 +12,4 @@
 ```bash
     python main.py
 ``` 
-Документацию можете посмотреть в index.html 
+Документацию можете посмотреть в [index.html](https://github.com/Kerpee/ProjectITMO/blob/main/html/index.html) 
