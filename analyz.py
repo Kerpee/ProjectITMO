@@ -13,7 +13,7 @@ from fuzzywuzzy import process, fuzz
 from dotenv import load_dotenv
 import shutil
 
-load_dotenv(os.path.join(os.getcwd(),'api_token.env'))
+load_dotenv(os.path.join(os.getcwd(), 'api_token.env'))
 api_token = os.getenv('api_token')
 genius = lyricsgenius.Genius(api_token,
                              skip_non_songs=True,
@@ -40,7 +40,7 @@ def down(author):  # Скачивание автора, которого нет 
     @param  author:Автор песен, которого необходимо проанализировать
     """
     artist = genius.search_artist(author)
-    artist.save_lyrics(extension='json', overwrite=True,filename=f"Lyrics_{author}")
+    artist.save_lyrics(extension='json', overwrite=True, filename=f"Lyrics_{author}")
     direct = os.path.join(os.getcwd(), 'lyrics')
     filename = f"Lyrics_{author}.json"
     if os.path.exists(os.path.join(direct, filename)):
@@ -60,7 +60,7 @@ def get_author(author, list_of_authors):
     пользователя
        """
     author_cool, score = process.extractOne(author, list_of_authors, scorer=fuzz.token_sort_ratio)
-    threshold=42
+    threshold = 42
     return author_cool if score > threshold else author
 
 
