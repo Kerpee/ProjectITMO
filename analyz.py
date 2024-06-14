@@ -253,36 +253,48 @@ def compare(data1, data2):
     @param data2: Информация про второго автора
     @return: Вызывает функцию для визуализации
     """
-    len_data1 = len(data1)
-    len_data2 = len(data2)
-    sent_aut_1, score_aut_1 = wc(data1)
-    sent_aut_2, score_aut_2 = wc(data2)
+    author1 = None
+    author2 = None
+    for i in range(100):
+        try:
+            author1 = data1['title'][i].split('by')[-1]
+            break
+        except KeyError:
+            continue
+    for i in range(100):
+        try:
+            author2 = data2['title'][i].split('by')[-1]
+            break
+        except KeyError:
+            continue
+    unique_compare_2authors(author1, author2, data1, data2)
 
-    for i in score_aut_1:
-        score_aut_1[i] /= len_data1
-    for i in score_aut_2:
-        score_aut_2[i] /= len_data2
-    author1 = data1['title'][0].split('by')[-1]
-    author2 = data2['title'][0].split('by')[-1]
 
-    plot_sent_2authors(author1, author2, score_aut_1, score_aut_2)
-
-
-def plot_sent_2authors(author1, author2, score1, score2):
+def unique_compare_2authors(author1, author2, data1, data2):
     """
-    Визуализациия сравнения авторов
-    @param author1: Имя первого автора
-    @param author2: Имя второго автора
-    @param score1: Оценка первого автора
-    @param score2: Оценка второго автора
+
+    @param author1: Имя исполнителя
+    @param author2: Имя второго исполнителя
+    @param data1: Информация про 1 исполнителя
+    @param data2: Информация про 2 исполнителя
     """
-    df = pd.DataFrame({
-        f'{author1}': [score1['pos'], score1['neg'], score1['neu'], score1['comp']],
-        f'{author2}': [score2['pos'], score2['neg'], score2['neu'], score2['comp']],
-        'Emo': ["Pos", 'Neg', 'Neu', 'Comp']
-    }).set_index('Emo')
-    df.plot(figsize=(10, 8), kind='bar')
-    plt.title('Сравнение эмоций')
-    plt.xlabel('Эмоции')
-    plt.ylabel('Ср.Знач')
+    unique_words1 = []
+    unique_words2 = []
+
+    for song in data1['lyrics']:
+        unique_words1.append(' '.join(song.split()))
+
+    for song in data2['lyrics']:
+        unique_words2.append(' '.join(song.split()))
+    cnt_of_w1 = len(set(''.join(unique_words1).split(' ')))
+    cnt_of_w2 = len(set(''.join(unique_words2).split(' ')))
+    df_unique_words = pd.DataFrame({
+        'Исполнитель': [author1, author2],
+        'Количество слов': [cnt_of_w1, cnt_of_w2]
+    })
+
+    df_unique_words.plot(x='Исполнитель', y='Количество слов', kind='bar', figsize=(12, 10))
+    plt.title('Общее количество уникальных слов')
+    plt.xlabel('Автор')
+    plt.ylabel('Количество уникальных слов')
     plt.show()

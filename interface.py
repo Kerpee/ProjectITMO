@@ -86,9 +86,11 @@ class LyricAnalyzer(Analyzer):
     def visualize_words(self):
         cloud(self.data)
 
-    def compare(self, author2):
-        data2 = inf(author2)
-        return compare(self.data, data2)
+    @staticmethod
+    def compare(author1, author2):
+        data1 = LyricAnalyzer(author1).data
+        data2 = LyricAnalyzer(author2).data
+        return compare(data1, data2)
 
 
 def update_all():
@@ -106,6 +108,7 @@ class LyricsAnalyzerApp(tk.Tk):  # Класс, инициализирующая 
     """
           Класс необходиый для создания оконного приложения
     """
+
     def __init__(self):
         super().__init__()
         self.author2_entry = None
@@ -159,7 +162,7 @@ class LyricsAnalyzerApp(tk.Tk):  # Класс, инициализирующая 
                                       "Вывод топ-100 слов исполнителя",
                                       "Высчёт эмоциональной окраски слова",
                                       'Показать визуализацию слов',
-                                      'Сравнить настроение двух исполнителей')
+                                      'Сравнить количество слов у двух исполнителей')
         self.action_menu.grid(column=2, row=3, columnspan=2, sticky=(tk.W + tk.E))
 
         ttk.Label(frame, text="Введите слово для подсчета:").grid(column=1, row=4, sticky=tk.W)
@@ -218,11 +221,10 @@ class LyricsAnalyzerApp(tk.Tk):  # Класс, инициализирующая 
 
         elif action == "Показать визуализацию слов":
             analyzer.visualize_words()
-        elif action == 'Сравнить настроение двух исполнителей':
+        elif action == 'Сравнить количество слов у двух исполнителей':
             if not author2 or not author:
                 messagebox.showinfo("Ошибка", 'Введите второго автора')
-            res = analyzer.compare(author2)
-            messagebox.showinfo("Результат", res)
+            analyzer.compare(author, author2)
 
     def update_one(self):
         """
