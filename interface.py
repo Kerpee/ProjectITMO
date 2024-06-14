@@ -11,6 +11,7 @@ class Analyzer:
     """
     Начальный класс, получающий начальную информацию об операции
     """
+
     def __init__(self, author):
         """
         Иницииализирующая функция
@@ -40,6 +41,10 @@ class LyricAnalyzer(Analyzer):
     """
       Класс необходиый для вызова функций из analyz.py
     """
+
+    def __init__(self, author):
+        super().__init__(author)
+
     def count_russian_word(self, word, country):  # Специальная функция для подсчёта слов, учитывая падежи
         """
         Функция необоходима для подсчёта слов русского языка, учитывая падежи
@@ -72,13 +77,18 @@ class LyricAnalyzer(Analyzer):
         return coeff(self.data)
 
     def count_all_words(self):
-        return max_words_song(self.data)
+        _, out = max_words_song(self.data)
+        return out
 
     def analyze_word_emotion(self):
         return wc(self.data)
 
     def visualize_words(self):
         cloud(self.data)
+
+    def compare(self, author2):
+        data2 = inf(author2)
+        return compare(self.data, data2)
 
 
 def update_all():
@@ -98,6 +108,8 @@ class LyricsAnalyzerApp(tk.Tk):  # Класс, инициализирующая 
     """
     def __init__(self):
         super().__init__()
+        self.author2_entry = None
+        self.author2_var = None
         self.album_entry = None
         self.word_entry = None
         self.action_menu = None
@@ -108,7 +120,7 @@ class LyricsAnalyzerApp(tk.Tk):  # Класс, инициализирующая 
         self.author_var = None
         self.country_var = None
         self.title("Приложение для анализа")
-        self.geometry('700x400')
+        self.geometry('1200x400')
         self.resizable(False, False)
         self.create_buttons()
 
@@ -117,10 +129,11 @@ class LyricsAnalyzerApp(tk.Tk):  # Класс, инициализирующая 
            Функция необоходима для создания элементов интерфейса приложения
            """
         frame = ttk.Frame(self, padding="10")
-        frame.grid(row=0, column=0, sticky=(tk.W+tk.E+tk.N+tk.S))
+        frame.grid(row=0, column=0, sticky=(tk.W + tk.E + tk.N + tk.S))
 
         self.country_var = tk.StringVar()
         self.author_var = tk.StringVar()
+        self.author2_var = tk.StringVar()
         self.action_var = tk.StringVar()
         self.word_var = tk.StringVar()
         self.album_var = tk.StringVar()
@@ -132,25 +145,30 @@ class LyricsAnalyzerApp(tk.Tk):  # Класс, инициализирующая 
 
         ttk.Label(frame, text="Введите автора для анализа:").grid(column=1, row=2, sticky=tk.W)
         self.author_entry = ttk.Entry(frame, width=20, textvariable=self.author_var)
-        self.author_entry.grid(column=2, row=2, columnspan=2, sticky=(tk.W+tk.E))
+        self.author_entry.grid(column=2, row=2, columnspan=2, sticky=(tk.W + tk.E))
+
+        ttk.Label(frame, text="Введите второго автора для сравнения:").grid(column=7, row=2, sticky=tk.W)
+        self.author2_entry = ttk.Entry(frame, width=20, textvariable=self.author2_var)
+        self.author2_entry.grid(column=8, row=2, columnspan=3, sticky=(tk.W + tk.E))
 
         ttk.Label(frame, text="Что вы хотите сделать:").grid(column=1, row=3, sticky=tk.W)
         self.action_menu = ttk.Combobox(frame, textvariable=self.action_var)
         self.action_menu['values'] = ("Подсчёт опредленного слова",
                                       "Подсчёт всех слов альбоме",
                                       "Высчитать коэффицент важности",
-                                      "Подсчёт всех слов исполнителя",
+                                      "Вывод топ-100 слов исполнителя",
                                       "Высчёт эмоциональной окраски слова",
-                                      'Показать визуализацию слов')
-        self.action_menu.grid(column=2, row=3, columnspan=2, sticky=(tk.W+tk.E))
+                                      'Показать визуализацию слов',
+                                      'Сравнить настроение двух исполнителей')
+        self.action_menu.grid(column=2, row=3, columnspan=2, sticky=(tk.W + tk.E))
 
         ttk.Label(frame, text="Введите слово для подсчета:").grid(column=1, row=4, sticky=tk.W)
         self.word_entry = ttk.Entry(frame, width=20, textvariable=self.word_var)
-        self.word_entry.grid(column=2, row=4, columnspan=2, sticky=(tk.W+tk.E))
+        self.word_entry.grid(column=2, row=4, columnspan=2, sticky=(tk.W + tk.E))
 
         ttk.Label(frame, text="Введите название альбома:").grid(column=1, row=5, sticky=tk.W)
         self.album_entry = ttk.Entry(frame, width=20, textvariable=self.album_var)
-        self.album_entry.grid(column=2, row=5, columnspan=2, sticky=(tk.W+tk.E))
+        self.album_entry.grid(column=2, row=5, columnspan=2, sticky=(tk.W + tk.E))
 
         ttk.Button(frame, text="Начать анализ", command=self.start_analyzis).grid(column=2, row=6, columnspan=2)
         ttk.Button(frame, text='Обновить базу для всех исполнителей', command=update_all).grid(column=2, row=7,
@@ -164,13 +182,13 @@ class LyricsAnalyzerApp(tk.Tk):  # Класс, инициализирующая 
         """
         country = self.country_var.get()
         author = self.author_var.get()
+        author2 = self.author2_var.get()
         action = self.action_var.get()
         word = self.word_var.get()
         album = self.album_var.get()
         if not author:
             messagebox.showerror("Ошибка", "Введите имя автора.")
             return
-
         analyzer = LyricAnalyzer(author)
 
         if action == "Подсчёт опредленного слова":
@@ -190,7 +208,7 @@ class LyricsAnalyzerApp(tk.Tk):  # Класс, инициализирующая 
             result = analyzer.calculate_importance_coefficient()
             messagebox.showinfo("Результат", result)
 
-        elif action == "Подсчёт всех слов исполнителя":
+        elif action == "Вывод топ-100 слов исполнителя":
             result = analyzer.count_all_words()
             messagebox.showinfo("Результат", result)
 
@@ -200,6 +218,11 @@ class LyricsAnalyzerApp(tk.Tk):  # Класс, инициализирующая 
 
         elif action == "Показать визуализацию слов":
             analyzer.visualize_words()
+        elif action == 'Сравнить настроение двух исполнителей':
+            if not author2 or not author:
+                messagebox.showinfo("Ошибка", 'Введите второго автора')
+            res = analyzer.compare(author2)
+            messagebox.showinfo("Результат", res)
 
     def update_one(self):
         """

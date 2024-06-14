@@ -12,6 +12,7 @@ import matplotlib.pyplot as plt
 from fuzzywuzzy import process, fuzz
 from dotenv import load_dotenv
 import shutil
+from joblib import Memory
 
 load_dotenv(os.path.join(os.getcwd(), 'api_token.env'))
 api_token = os.getenv('api_token')
@@ -21,8 +22,11 @@ genius = lyricsgenius.Genius(api_token,
 pd.set_option('display.max_rows', None)
 pd.set_option('display.max_columns', None)
 morph = pymorphy3.MorphAnalyzer()
+mem = Memory('cachedir', verbose=0)
+mem_trans = Memory('trans_cache', verbose=0)
 
 
+@mem_trans.cache()
 def translate_text(text):  # Функция, необходимая для перевода слов для оценки эмоциональной окраски
     """
     Функция для перевода песен для анализа эмоциональной окраски песен
@@ -71,9 +75,9 @@ def inf(author):  # Создаём DataFrame файл, который содеж
        @return Переменная типа DataFrame с информацией о песнях
        """
     with open(os.path.join('lyrics', f"Lyrics_{author}.json")) as f:
-        dataopen = json.load(f)
-        listi = []
-        for row in dataopen["songs"]:
+        data_open = json.load(f)
+        songs = []
+        for row in data_open["songs"]:
             acc_dict = {}
             try:
                 acc_dict['title'] = row['full_title']
@@ -95,8 +99,8 @@ def inf(author):  # Создаём DataFrame файл, который содеж
                 acc_dict['lyrics'] = row['lyrics']
             except KeyError:
                 acc_dict['lyrics'] = None
-            listi.append(acc_dict)
-    df = pd.DataFrame(listi)
+            songs.append(acc_dict)
+    df = pd.DataFrame(songs)
     df.dropna(inplace=True)
     df.head()
     songs_b = df.groupby(df.album).size().reset_index(name='counts')  # Сортируем песни по албомам исполнителя
@@ -160,7 +164,7 @@ def max_words_album(album, data):  # Функция для подсчёта сл
     list_of_tuple = vocab.items()
     master_list = [(word, sum_cnt[0, index]) for word, index in list_of_tuple]
     master_list.sort(key=lambda x: x[1], reverse=True)
-    return master_list, len(master_list)
+    return len(master_list), master_list
 
 
 def max_words_song(data):  # Функция для подсчёта всех слов
@@ -176,8 +180,7 @@ def max_words_song(data):  # Функция для подсчёта всех с�
     list_of_tuple = vocab.items()
     master_list = [(word, sum_cnt[0, index]) for word, index in list_of_tuple]
     master_list.sort(key=lambda x: x[1], reverse=True)
-    print(len(data.lyrics))
-    return master_list
+    return master_list, master_list[:100]
 
 
 def coeff(data):  # Высчитываем коэффиценты слов, то есть то насколько часто автор использует это слово во всех песнях
@@ -197,13 +200,14 @@ def coeff(data):  # Высчитываем коэффиценты слов, то
     return format_master_list1[:20]
 
 
+@mem.cache()
 def wc(data):  # Оцениваем эмоциональную окраску текстов
     """
        Функция для эмоционлаьной окраски текстов автора
        @param  data:Переменная типа DataFrame с информацией о песнях
        @return Средние значения количества каждой эмоции и вывод, кооторый следует из этого
        """
-    list_of_word = max_words_song(data)
+    list_of_word, _ = max_words_song(data)
     analyzer = SentimentIntensityAnalyzer()
     scores = {'pos': 0, 'neg': 0, 'neu': 0, 'comp': 0}
     for word in range(len(list_of_word)):
@@ -236,4 +240,46 @@ def cloud(data):  # Создаём кластеры слов автора
     plt.figure(figsize=(10, 8))
     plt.imshow(wordclouds)
     plt.axis('off')
+    plt.show()
+
+
+def compare(data1, data2):
+    '''
+
+    @param data1: Информация про первого автора
+    @param data2: Информация про второго автора
+    @return: Вызывает функцию для визуализации
+    '''
+    len_data1 = len(data1)
+    len_data2 = len(data2)
+    sent_aut_1, score_aut_1 = wc(data1)
+    sent_aut_2, score_aut_2 = wc(data2)
+
+    for i in score_aut_1:
+        score_aut_1[i] /= len_data1
+    for i in score_aut_2:
+        score_aut_2[i] /= len_data2
+    author1 = data1['title'][0].split('by')[-1]
+    author2 = data2['title'][0].split('by')[-1]
+
+    plot_sent_2authors(author1, author2, score_aut_1, score_aut_2)
+
+
+def plot_sent_2authors(author1, author2, score1, score2):
+    '''
+    Визуализациия сравнения авторов
+    @param author1: Имя первого автора
+    @param author2: Имя второго автора
+    @param score1: Оценка первого автора
+    @param score2: Оценка второго автора
+    '''
+    df = pd.DataFrame({
+        f'{author1}': [score1['pos'], score1['neg'], score1['neu'], score1['comp']],
+        f'{author2}': [score2['pos'], score2['neg'], score2['neu'], score2['comp']],
+        'Emo': ["Pos", 'Neg', 'Neu', 'Comp']
+    }).set_index('Emo')
+    df.plot(figsize=(10, 8), kind='bar')
+    plt.title('Сравнение эмоций')
+    plt.xlabel('Эмоции')
+    plt.ylabel('Ср.Знач')
     plt.show()
