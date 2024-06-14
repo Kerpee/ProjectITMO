@@ -58,12 +58,12 @@ def down(author):  # Скачивание автора, которого нет 
 def get_correct(obj, list_of_obj):
     """
     Функция для помощи пользователю в нахождении исполнителя, если он неправильно написал автора
-    @param  author:Автор песен, которого необходимо проанализировать
-    @param list_of_authors: Список всех авторов, которые скачаны
+    @param  obj:Объект, которого необходимо проанализировать
+    @param list_of_obj: Список всех объектов, которые скачаны
     @return Возвращается правильное написание автора, если было превышен порог распознования, иначе возвращается вариант
     пользователя
        """
-    print(obj,list_of_obj)
+
     obj_cool, score = process.extractOne(obj, list_of_obj, scorer=fuzz.token_sort_ratio)
     threshold = 42
     return obj_cool if score > threshold else obj
@@ -139,7 +139,7 @@ def visual(data, list_of_word, wordik):  # Визуализация подсчё
        """
     data[f"Количество {wordik}"] = list_of_word
     d_sort = data.sort_values(by=[f"Количество {wordik}"], ascending=False)
-    data = d_sort.head(7)
+    data = d_sort.head(5)
     plt.figure(figsize=(12, 16))
     plt.bar(data['title'], data[f"Количество {wordik}"])
     plt.xlabel('Название')
@@ -156,7 +156,7 @@ def max_words_album(album, data):  # Функция для подсчёта сл
            @return Список, который отображает сколько раз используется нужное нам слово в каждой песне в альбоме
            """
     list_of_albums = data['album']
-    list_of_albums=list_of_albums.tolist()
+    list_of_albums = list_of_albums.tolist()
     correct_album = get_correct(album, list_of_albums)
     album_songs = data[data['album'] == correct_album]['lyrics']
     vectorizer = CountVectorizer(
@@ -247,12 +247,12 @@ def cloud(data):  # Создаём кластеры слов автора
 
 
 def compare(data1, data2):
-    '''
+    """
 
     @param data1: Информация про первого автора
     @param data2: Информация про второго автора
     @return: Вызывает функцию для визуализации
-    '''
+    """
     len_data1 = len(data1)
     len_data2 = len(data2)
     sent_aut_1, score_aut_1 = wc(data1)
@@ -269,13 +269,13 @@ def compare(data1, data2):
 
 
 def plot_sent_2authors(author1, author2, score1, score2):
-    '''
+    """
     Визуализациия сравнения авторов
     @param author1: Имя первого автора
     @param author2: Имя второго автора
     @param score1: Оценка первого автора
     @param score2: Оценка второго автора
-    '''
+    """
     df = pd.DataFrame({
         f'{author1}': [score1['pos'], score1['neg'], score1['neu'], score1['comp']],
         f'{author2}': [score2['pos'], score2['neg'], score2['neu'], score2['comp']],
