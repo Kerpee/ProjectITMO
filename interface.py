@@ -27,7 +27,7 @@ class Analyzer:
                 """
         author_files = [f for f in os.listdir('lyrics') if f.startswith('Lyrics_') and f.endswith('.json')]
         authors_list = [f[7:-5] for f in author_files]
-        self.author = get_author(self.author, authors_list)
+        self.author = get_correct(self.author, authors_list)
         if not os.path.exists(os.path.join('lyrics', f'Lyrics_{self.author}.json')):
             messagebox.showinfo('ОЙ', 'Не знали о таком исполнителе; Сейчас узнаем')
             down(self.author)

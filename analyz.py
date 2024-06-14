@@ -55,7 +55,7 @@ def down(author):  # Скачивание автора, которого нет 
 # Проверка на совпадение автора, что позволяет уменьшить количество ошибок при вводе
 
 
-def get_author(author, list_of_authors):
+def get_correct(obj, list_of_obj):
     """
     Функция для помощи пользователю в нахождении исполнителя, если он неправильно написал автора
     @param  author:Автор песен, которого необходимо проанализировать
@@ -63,9 +63,10 @@ def get_author(author, list_of_authors):
     @return Возвращается правильное написание автора, если было превышен порог распознования, иначе возвращается вариант
     пользователя
        """
-    author_cool, score = process.extractOne(author, list_of_authors, scorer=fuzz.token_sort_ratio)
+    print(obj,list_of_obj)
+    obj_cool, score = process.extractOne(obj, list_of_obj, scorer=fuzz.token_sort_ratio)
     threshold = 42
-    return author_cool if score > threshold else author
+    return obj_cool if score > threshold else obj
 
 
 def inf(author):  # Создаём DataFrame файл, который содежрит информацию о песнях.
@@ -138,12 +139,11 @@ def visual(data, list_of_word, wordik):  # Визуализация подсчё
        """
     data[f"Количество {wordik}"] = list_of_word
     d_sort = data.sort_values(by=[f"Количество {wordik}"], ascending=False)
-    data = d_sort.head(5)
-    plt.figure(figsize=(12, 6))
+    data = d_sort.head(7)
+    plt.figure(figsize=(12, 16))
     plt.bar(data['title'], data[f"Количество {wordik}"])
-    plt.xlabel('Слово')
-    plt.ylabel('Количество')
-    plt.title('Количество слов')
+    plt.xlabel('Название')
+    plt.ylabel('Количество слов')
     plt.show()
 
 
@@ -155,10 +155,13 @@ def max_words_album(album, data):  # Функция для подсчёта сл
 
            @return Список, который отображает сколько раз используется нужное нам слово в каждой песне в альбоме
            """
-    album = data.loc[data.album == album]
+    list_of_albums = data['album']
+    list_of_albums=list_of_albums.tolist()
+    correct_album = get_correct(album, list_of_albums)
+    album_songs = data[data['album'] == correct_album]['lyrics']
     vectorizer = CountVectorizer(
         stop_words=stopwords.words('russian'))  # Присуждаем каждому слову номер для облегчения подсчёта
-    data_set = vectorizer.fit_transform(album.lyrics)
+    data_set = vectorizer.fit_transform(album_songs)
     sum_cnt = data_set.sum(axis=0)
     vocab = vectorizer.vocabulary_
     list_of_tuple = vocab.items()
